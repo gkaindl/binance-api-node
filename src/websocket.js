@@ -265,7 +265,7 @@ const user = opts => cb => {
   
   const keep_alive = (is_reconnecting) => {
     if (currentListenKey) {
-       keepStreamAlive(keepDataStream, currentListenKey)
+       keepStreamAlive(keepDataStream, currentListenKey)()
         .catch((err) => {          
           close_stream({}, true)
                 
