@@ -10,12 +10,16 @@ const client = Binance({
 })
 
 test('[REST] order', async t => {
-  await client.orderTest({
-    symbol: 'ETHBTC',
-    side: 'BUY',
-    quantity: 1,
-    price: 1,
-  })
+  try {
+    await client.orderTest({
+      symbol: 'ETHBTC',
+      side: 'BUY',
+      quantity: 1,
+      price: 1,
+    })
+  } catch (e) {
+    t.is(e.message, 'Filter failure: PERCENT_PRICE')
+  }
 
   await client.orderTest({
     symbol: 'ETHBTC',
@@ -97,6 +101,13 @@ test('[REST] accountInfo', async t => {
   t.truthy(account.balances.length)
 })
 
+test('[REST] tradeFee', async t => {
+  const tfee = await client.tradeFee()
+  t.truthy(tfee)
+  t.truthy(tfee.length)
+  checkFields(t, tfee[0], ['symbol', 'maker', 'taker'])
+})
+
 test('[REST] depositHistory', async t => {
   const history = await client.depositHistory()
   t.true(history.success)
@@ -110,9 +121,9 @@ test('[REST] withdrawHistory', async t => {
 })
 
 test('[REST] depositAddress', async t => {
-  const out = await client.depositAddress({ asset: 'NEO' })
+  const out = await client.depositAddress({ asset: 'ETH' })
   t.true(out.success)
-  t.is(out.asset, 'NEO')
+  t.is(out.asset, 'ETH')
   t.truthy(out.address)
 })
 

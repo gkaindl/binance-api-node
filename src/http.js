@@ -5,6 +5,8 @@ import 'isomorphic-fetch'
 
 const BASE = 'https://api.binance.com'
 
+const defaultGetTime = () => Date.now()
+
 /**
  * Build query string for uri encoded url based on json object
  */
@@ -91,7 +93,7 @@ const keyCall = ({ apiKey }) => (path, data, method = 'GET') => {
  * @param {object} headers
  * @returns {object} The api response
  */
-const privateCall = ({ apiKey, apiSecret }) => (
+const privateCall = ({ apiKey, apiSecret, getTime = defaultGetTime }) => (
   path,
   data = {},
   method = 'GET',
@@ -104,7 +106,7 @@ const privateCall = ({ apiKey, apiSecret }) => (
 
   return (data && data.useServerTime
     ? publicCall('/v1/time').then(r => r.serverTime)
-    : Promise.resolve(Date.now())
+    : Promise.resolve(getTime())
   ).then(timestamp => {
     if (data) {
       delete data.useServerTime
@@ -220,6 +222,9 @@ export default opts => {
       publicCall('/v1/ticker/allPrices').then(r =>
         r.reduce((out, cur) => ((out[cur.symbol] = cur.price), out), {}),
       ),
+    
+    avgPrice: payload => publicCall('/v3/avgPrice', payload),
+
     allBookTickers: () =>
       publicCall('/v1/ticker/allBookTickers').then(r =>
         r.reduce((out, cur) => ((out[cur.symbol] = cur), out), {}),
@@ -237,10 +242,11 @@ export default opts => {
     myTrades: payload => pCall('/v3/myTrades', payload),
 
     withdraw: payload => pCall('/wapi/v3/withdraw.html', payload, 'POST'),
-    withdrawFee: payload => pCall('/wapi/v3/withdrawFee.html', payload),
     withdrawHistory: payload => pCall('/wapi/v3/withdrawHistory.html', payload),
     depositHistory: payload => pCall('/wapi/v3/depositHistory.html', payload),
     depositAddress: payload => pCall('/wapi/v3/depositAddress.html', payload),
+    tradeFee: payload => pCall('/wapi/v3/tradeFee.html', payload).then(res => res.tradeFee),
+    assetDetail: payload => pCall('/wapi/v3/assetDetail.html', payload),
 
     getDataStream: () => pCall('/v1/userDataStream', null, 'POST', true),
     keepDataStream: payload => pCall('/v1/userDataStream', payload, 'PUT', false, true),

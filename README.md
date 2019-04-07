@@ -5,6 +5,8 @@
 Note: This wrapper uses Promises, if they are not supported in your environment, you might
 want to add [a polyfill](https://github.com/stefanpenner/es6-promise) for them.
 
+For PRs or issues, head over to the [source repository](https://github.com/HyperCubeProject/binance-api-node).
+
 ### Installation
 
     yarn add binance-api-node
@@ -24,6 +26,7 @@ const client = Binance()
 const client2 = Binance({
   apiKey: 'xxx',
   apiSecret: 'xxx',
+  getTime: xxx // time generator function, optional, defaults to () => Date.now()
 })
 
 client.time().then(time => console.log(time))
@@ -49,6 +52,7 @@ Following examples will use the `await` form, which requires some configuration 
     - [aggTrades](#aggtrades)
     - [trades](#trades)
     - [dailyStats](#dailystats)
+    - [avgPrice](#avgPrice)
     - [prices](#prices)
     - [allBookTickers](#allbooktickers)
 - [Authenticated REST Endpoints](#authenticated-rest-endpoints)
@@ -65,6 +69,7 @@ Following examples will use the `await` form, which requires some configuration 
     - [withdrawHistory](#withdrawhistory)
     - [withdraw](#withdraw)
     - [depositAddress](#depositaddress)
+    - [tradeFee](#tradefee)
 - [Websockets](#websockets)
     - [depth](#depth)
     - [partialDepth](#partialdepth)
@@ -120,18 +125,21 @@ console.log(await client.exchangeInfo())
   "serverTime": 1508631584636,
   "rateLimits": [
     {
-      "rateLimitType": "REQUESTS",
+      "rateLimitType": "REQUEST_WEIGHT",
       "interval": "MINUTE",
+      "intervalNum": 1,
       "limit": 1200
     },
     {
       "rateLimitType": "ORDERS",
       "interval": "SECOND",
+      "intervalNum": 1,
       "limit": 10
     },
     {
       "rateLimitType": "ORDERS",
       "interval": "DAY",
+      "intervalNum": 1,
       "limit": 100000
     }
   ],
@@ -211,7 +219,7 @@ console.log(await client.candles({ symbol: 'ETHBTC' }))
 |--- |--- |--- |--- |--- |
 |symbol|String|true|
 |interval|String|false|`5m`|`1m`, `3m`, `5m`, `15m`, `30m`, `1h`, `2h`,<br>`4h`, `6h`, `8h`, `12h`, `1d`, `3d`, `1w`, `1M`|
-|limit|Number|false|`500`|Max `500`|
+|limit|Number|false|`500`|Max `1000`|
 |startTime|Number|false|
 |endTime|Number|false|
 
@@ -342,6 +350,30 @@ console.log(await client.dailyStats({ symbol: 'ETHBTC' }))
   firstId: 45409308, // First tradeId
   lastId: 45724293, // Last tradeId
   count: 314986 // Trade count
+}
+```
+
+</details>
+
+#### avgPrice
+
+Current average price for a symbol.
+
+```js
+console.log(await client.avgPrice({ symbol: 'ETHBTC' }))
+```
+
+| Param  | Type   | Required |
+| ------ | ------ | -------- |
+| symbol | String | true     |
+
+<details>
+<summary>Output</summary>
+
+```js
+{
+  "mins": 5,
+  "price": "9.35751834"
 }
 ```
 
@@ -484,8 +516,8 @@ Check an order's status.
 
 ```js
 console.log(await client.getOrder({
-  symbol: 'ETHBTC',
-  orderId: 1,
+  symbol: 'BNBETH',
+  orderId: 50167927,
 }))
 ```
 
@@ -501,20 +533,24 @@ console.log(await client.getOrder({
 
 ```js
 {
-  symbol: 'ENGETH',
-  orderId: 191938,
-  clientOrderId: '1XZTVBTGS4K1e',
-  price: '0.00138000',
-  origQty: '1.00000000',
-  executedQty: '1.00000000',
+  clientOrderId: 'NkQnNkdBV1RGjUALLhAzNy',
+  cummulativeQuoteQty: '0.16961580',
+  executedQty: '3.91000000',
+  icebergQty: '0.00000000',
+  isWorking: true,
+  orderId: 50167927,
+  origQty: '3.91000000',
+  price: '0.04338000',
+  side: 'SELL',
   status: 'FILLED',
+  stopPrice: '0.00000000',
+  symbol: 'BNBETH',
+  time: 1547075007821,
   timeInForce: 'GTC',
   type: 'LIMIT',
-  side: 'SELL',
-  stopPrice: '0.00000000',
-  icebergQty: '0.00000000',
-  time: 1508611114735
+  updateTime: 1547075016737
 }
+
 ```
 
 </details>
@@ -625,7 +661,8 @@ console.log(await client.allOrders({
   side: 'SELL',
   stopPrice: '0.00000000',
   icebergQty: '0.00000000',
-  time: 1508611114735
+  time: 1508611114735,
+  isWorking: true
 }]
 ```
 
@@ -861,6 +898,34 @@ console.log(await client.depositAddress({ asset: 'NEO' }))
 ```
 
 </details>
+
+#### tradeFee
+
+Retrieve the account trade Fee per asset.
+
+```js
+console.log(await client.tradeFee())
+```
+
+<details>
+<summary>Output</summary>
+
+```js
+[{
+  symbol: 'BTC',
+  maker: 0.0001,
+  taker: 0.0001,
+},
+{
+  symbol: 'LTC',
+  maker: 0.0001,
+  taker: 0.0001,
+}
+...]
+```
+
+</details>
+
 
 ### WebSockets
 

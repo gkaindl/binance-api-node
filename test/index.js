@@ -99,6 +99,12 @@ test('[REST] prices', async t => {
   t.truthy(prices.ETHBTC)
 })
 
+test('[REST] avgPrice', async t => {
+  const res = await client.avgPrice({ symbol: 'ETHBTC' })
+  t.truthy(res)
+  checkFields(t, res, ['mins', 'price'])
+})
+
 test('[REST] allBookTickers', async t => {
   const tickers = await client.allBookTickers()
   t.truthy(tickers)
@@ -108,6 +114,14 @@ test('[REST] allBookTickers', async t => {
 test('[REST] Signed call without creds', async t => {
   try {
     await client.accountInfo()
+  } catch (e) {
+    t.is(e.message, 'You need to pass an API key and secret to make authenticated calls.')
+  }
+})
+
+test('[REST] Signed call without creds - attempt getting tradeFee', async t => {
+  try {
+    await client.tradeFee()
   } catch (e) {
     t.is(e.message, 'You need to pass an API key and secret to make authenticated calls.')
   }
