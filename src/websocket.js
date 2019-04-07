@@ -257,7 +257,7 @@ export const userEventHandler = cb => msg => {
   cb(userTransforms[type] ? userTransforms[type](rest) : { type, ...rest })
 }
 
-export const keepStreamAlive = (method, listenKey) => method({ listenKey }).catch(f => f)
+export const keepStreamAlive = (method, listenKey) => () => method({ listenKey })
 
 const user = opts => cb => {
   const { getDataStream, keepDataStream, closeDataStream } = httpMethods(opts)
